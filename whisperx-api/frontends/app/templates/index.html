@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhisperX UI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #222;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .card {
+            margin-top: 2rem;
+        }
+        .result-container {
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #181a1b !important;
+            color: #eee !important;
+        }
+        .dark-mode .card,
+        .dark-mode .result-container {
+            background-color: #23272b !important;
+            color: #eee !important;
+        }
+        .dark-mode .form-control,
+        .dark-mode .form-select {
+            background-color: #23272b !important;
+            color: #eee !important;
+            border-color: #444 !important;
+        }
+        .dark-mode .form-check-label {
+            color: #eee !important;
+        }
+        .dark-mode .btn-primary {
+            background-color: #375a7f !important;
+            border-color: #375a7f !important;
+        }
+        .dark-mode .btn-outline-secondary {
+            color: #eee !important;
+            border-color: #eee !important;
+        }
+        .dark-mode .btn-outline-secondary:hover {
+            background-color: #eee !important;
+            color: #23272b !important;
+        }
+        .dark-mode .alert-danger {
+            background-color: #7c2222 !important;
+            color: #fff !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center my-4">
+            <div>
+                <h1>WhisperX Transcription</h1>
+                <p class="lead mb-0">Upload an audio file and select your transcription options.</p>
+            </div>
+            <div class="form-check form-switch ms-3">
+                <input class="form-check-input" type="checkbox" id="darkModeSwitch">
+                <label class="form-check-label" for="darkModeSwitch">Dark Mode</label>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form id="uploadForm">
+                    <div class="mb-3">
+                        <label for="audioFile" class="form-label">Audio File(s)</label>
+                        <input type="file" class="form-control" id="audioFile" name="file" accept="audio/*" multiple required>
+                        <div class="form-text">You can select multiple files. Each will be processed in order.</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="modelSize" class="form-label">Model Size</label>
+                            <select class="form-select" id="modelSize" name="model_size">
+                                <option value="tiny.en">Tiny (English)</option>
+                                <option value="tiny">Tiny (Multilingual)</option>
+                                <option value="base.en">Base (English)</option>
+                                <option value="base">Base (Multilingual)</option>
+                                <option value="small.en">Small (English)</option>
+                                <option value="small" selected>Small (Multilingual)</option>
+                                <option value="medium.en">Medium (English)</option>
+                                <option value="medium">Medium (Multilingual)</option>
+                                <option value="large-v2">Large-v2</option>
+                                <option value="large-v3">Large-v3</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="language" class="form-label">Language</label>
+                            <select class="form-select" id="language" name="language">
+                                <option value="auto" selected>Auto-Detect</option>
+                                <option value="en">English</option>
+                                <option value="de">German</option>
+                                <option value="fr">French</option>
+                                <option value="es">Spanish</option>
+                                <option value="it">Italian</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="diarize" name="diarize">
+                        <label class="form-check-label" for="diarize">Enable Diarization (Speaker ID)</label>
+                    </div>
+
+                    <div id="speakerFields" class="row d-none">
+                        <div class="col-md-6 mb-3">
+                            <label for="speakerMin" class="form-label">Min Speakers</label>
+                            <input type="number" class="form-control" id="speakerMin" name="speaker_min" placeholder="Optional" min="1">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="speakerMax" class="form-label">Max Speakers</label>
+                            <input type="number" class="form-control" id="speakerMax" name="speaker_max" placeholder="Optional" min="1">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Output Format(s)</label><br>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="output_formats" id="formatJson" value="json" checked>
+                            <label class="form-check-label" for="formatJson">JSON</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="output_formats" id="formatTxt" value="txt">
+                            <label class="form-check-label" for="formatTxt">TXT</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="output_formats" id="formatSrt" value="srt">
+                            <label class="form-check-label" for="formatSrt">SRT</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Transcribe</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="logArea" class="result-container d-none" style="max-height: 200px; overflow-y: auto; background: #222; color: #eee; font-size: 0.95em;"></div>
+        <div id="resultsContainer"></div>
+    </div>
+
+    <script>
+        // Dark mode logic
+        const darkModeSwitch = document.getElementById('darkModeSwitch');
+        function setDarkMode(on) {
+            document.body.classList.toggle('dark-mode', on);
+            localStorage.setItem('darkMode', on ? '1' : '0');
+            darkModeSwitch.checked = on;
+        }
+        // Set default based on system preference or saved setting
+        (function() {
+            const saved = localStorage.getItem('darkMode');
+            let dark = false;
+            if (saved === null) {
+                dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            } else {
+                dark = saved === '1';
+            }
+            setDarkMode(dark);
+        })();
+        darkModeSwitch.addEventListener('change', () => setDarkMode(darkModeSwitch.checked));
+        const form = document.getElementById('uploadForm');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const diarizeCheckbox = document.getElementById('diarize');
+        const speakerFields = document.getElementById('speakerFields');
+        const logArea = document.getElementById('logArea');
+        const downloadLinks = document.getElementById('downloadLinks');
+
+
+        // Persist diarization toggle state
+        (function() {
+            const diarizeSaved = localStorage.getItem('diarize');
+            if (diarizeSaved !== null) {
+                diarizeCheckbox.checked = diarizeSaved === '1';
+                speakerFields.classList.toggle('d-none', !diarizeCheckbox.checked);
+            }
+        })();
+        diarizeCheckbox.addEventListener('change', () => {
+            speakerFields.classList.toggle('d-none', !diarizeCheckbox.checked);
+            localStorage.setItem('diarize', diarizeCheckbox.checked ? '1' : '0');
+        });
+
+        function appendLog(msg) {
+            logArea.classList.remove('d-none');
+            logArea.textContent += msg + '\n';
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            logArea.textContent = '';
+            logArea.classList.remove('d-none');
+            resultsContainer.innerHTML = '';
+            const files = document.getElementById('audioFile').files;
+            if (!files.length) {
+                appendLog('No files selected.');
+                return;
+            }
+            let fileCount = files.length;
+            appendLog(`Processing ${fileCount} file(s)...`);
+            for (let i = 0; i < fileCount; i++) {
+                const file = files[i];
+                appendLog(`Uploading and processing: ${file.name}`);
+                const formData = new FormData(form);
+                // Remove all files from FormData, then append only the current one
+                formData.delete('file');
+                formData.append('file', file, file.name);
+
+                // Diarization speaker logic
+                const diarize = diarizeCheckbox.checked;
+                const minField = document.getElementById('speakerMin');
+                const maxField = document.getElementById('speakerMax');
+                let minVal = minField.value;
+                let maxVal = maxField.value;
+                if (!diarize) {
+                    formData.set('speaker_min', 0);
+                    formData.set('speaker_max', 0);
+                } else {
+                    if (!minVal) formData.set('speaker_min', 1);
+                    if (!maxVal) formData.set('speaker_max', 1);
+                }
+
+                // Create result card
+                const card = document.createElement('div');
+                card.className = 'result-container';
+                card.style.maxHeight = '400px';
+                card.style.overflowY = 'auto';
+                card.innerHTML = `<b>${file.name}</b><div class='spinner-border ms-2' role='status' style='width:1.5rem;height:1.5rem;'></div>`;
+                resultsContainer.appendChild(card);
+                try {
+                    const res = await fetch('/transcribe', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!res.ok) {
+                        let errorData;
+                        try { errorData = await res.json(); } catch { errorData = {}; }
+                        throw new Error(errorData.error || errorData.detail || 'Transcription failed');
+                    }
+                    const data = await res.json();
+                    // Show transcript and speaker naming UI if diarization is present
+                    const result = data.result;
+                    let downloadHtml = '';
+                    if (data.download_links) {
+                        downloadHtml = '<div class="mb-2"><b>Download:</b> ';
+                        for (const [fmt, url] of Object.entries(data.download_links)) {
+                            downloadHtml += `<a href="${url}" class="btn btn-sm btn-outline-secondary mx-1" target="_blank">${fmt.toUpperCase()}</a>`;
+                        }
+                        downloadHtml += '</div>';
+                    }
+                    let transcriptHtml = `<b>${file.name}</b>`;
+                    transcriptHtml += downloadHtml;
+                    transcriptHtml += `<pre style='white-space:pre-wrap;'>${JSON.stringify(result, null, 2)}</pre>`;
+                    // Speaker naming UI
+                    const speakers = new Set();
+                    if (result.segments) {
+                        result.segments.forEach(seg => {
+                            if (seg.words) {
+                                seg.words.forEach(w => { if (w.speaker) speakers.add(w.speaker); });
+                            }
+                        });
+                    }
+                    if (speakers.size > 0) {
+                        transcriptHtml += `<div class='mt-2'><b>Name the speakers:</b><form class='speaker-names-form'>`;
+                        Array.from(speakers).sort().forEach(speaker => {
+                            transcriptHtml += `<div class='input-group mb-1'><span class='input-group-text'>${speaker}</span><input type='text' class='form-control' name='speaker_name_${speaker}' placeholder='Name for ${speaker}'></div>`;
+                        });
+                        transcriptHtml += `<button type='submit' class='btn btn-sm btn-primary mt-2'>Apply Names</button></form></div>`;
+                    }
+                    card.innerHTML = transcriptHtml;
+                    // Speaker naming logic
+                    const speakerForm = card.querySelector('.speaker-names-form');
+                    if (speakerForm) {
+                        speakerForm.addEventListener('submit', function(ev) {
+                            ev.preventDefault();
+                            const formData = new FormData(speakerForm);
+                            // Replace speaker labels in transcript display
+                            let updated = JSON.parse(JSON.stringify(result));
+                            if (updated.segments) {
+                                updated.segments.forEach(seg => {
+                                    if (seg.words) {
+                                        seg.words.forEach(w => {
+                                            if (w.speaker && formData.get('speaker_name_' + w.speaker)) {
+                                                w.speaker = formData.get('speaker_name_' + w.speaker);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                            // Update transcript display
+                            card.querySelector('pre').textContent = JSON.stringify(updated, null, 2);
+                        });
+                    }
+                    appendLog(`Done: ${file.name}`);
+                } catch (err) {
+                    card.innerHTML = `<b>${file.name}</b><div class="alert alert-danger">${err.message}</div>`;
+                    appendLog(`Error: ${file.name}: ${err.message}`);
+                }
+            }
+            appendLog('All files processed.');
+        };
+    </script>
+</body>
+</html>

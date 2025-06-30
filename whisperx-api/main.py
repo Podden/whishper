@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from backends.wx import WhisperxBackend
 import logging
 from typing import Optional
+from fastapi.middleware.cors import CORSMiddleware
 
 description = """
 WhisperX-API is a REST endpoint to transcribe anything using WhisperX model. 🚀
@@ -22,6 +23,15 @@ app = FastAPI(
         "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
 
     }
+)
+
+# Allow CORS for frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or restrict to ["http://localhost:8080"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

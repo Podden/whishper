@@ -1,8 +1,8 @@
 import os
 import numpy as np
 from typing import List, TypedDict, Optional
-from faster_whisper import WhisperModel, download_model
 import whisperx
+from faster_whisper import download_model
 
 # Constants defining the supported Whisper model sizes for easy reference.
 SUPPORTED_MODELS = [
@@ -127,14 +127,10 @@ class WhisperxBackend:
         )
 
         if self.diarize:
-            # New whisperX v3.x API for diarization
-            diarize_segments = whisperx.diarize(
-                audio, 
-                result["segments"], 
-                min_speakers=speaker_min, 
-                max_speakers=speaker_max,
-                hf_token=self.hf_token
-            )
+            # WhisperX v3.x API for diarization using DiarizationPipeline
+            from whisperx.diarize import DiarizationPipeline
+            diarize_model = DiarizationPipeline(use_auth_token=self.hf_token, device=self.device)
+            diarize_segments = diarize_model(audio, min_speakers=speaker_min, max_speakers=speaker_max)
             result = whisperx.assign_word_speakers(diarize_segments, result)
 
         # Flatten the list of words from all segments for further processing.

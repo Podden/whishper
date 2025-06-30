@@ -1,11 +1,22 @@
 services:
+  whisperx-frontend:
+    build:
+      context: ./frontends/
+    ports:
+      - "8080:8080"
+    environment:
+      - WHISPERX_API_URL=http://whisperx-api:8000
+    networks:
+      - whisper-net
+    restart: unless-stopped
   whisperx-api:
     container_name: whisperx-api
-    image: pluja/whisperx-api:beta
+    build:
+      context: ./
     ports:
       - "8089:8000"
     volumes:
-      - ../uploads:/app/uploads
+      - ./uploads:/app/uploads
       - ./whisper_models:/app/wx_models
     environment:
       WHISPER_MODELS: tiny,small
@@ -22,4 +33,9 @@ services:
           - driver: nvidia
             count: all
             capabilities: [gpu]
-   
+    networks:
+      - whisper-net
+
+networks:
+  whisper-net:
+    driver: bridge
